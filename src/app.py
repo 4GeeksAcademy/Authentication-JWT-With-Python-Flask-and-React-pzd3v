@@ -10,7 +10,7 @@ from api.models import db
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
-
+from api.extensions import jwt
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
@@ -18,6 +18,8 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config["JWT_SECRET_KEY"] = os.getenv("FLASK_APP_KEY") # Tu llave secreta
+jwt.init_app(app)
 
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
@@ -38,7 +40,7 @@ setup_admin(app)
 setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
-app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(api, url_prefix='/')
 
 # Handle/serialize errors like a JSON object
 
