@@ -1,4 +1,3 @@
-import useGlobalReducer from "../hooks/useGlobalReducer";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,23 +8,31 @@ const Signup = () => {
 
   //Función que se activa al dar clic en el botón
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Evita que la página se recargue
+    e.preventDefault();
 
-  const response = await fetch(process.env.BACKEND_URL + "/api/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-  if (response.ok){
-    alert("¡Usuario creado con éxito! Redirigiendo al login...")
-    navigate("/signup");
-  }else{
-    const data = await response.json();
-    alert(data.message) || "Erorr al registrarse";
-  }
+      console.log("3. Estatus de respuesta:", response.status);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("¡Usuario creado con éxito!");
+        navigate("/login"); // Cambié /signup por /login para que tenga sentido
+      } else {
+        // Usamos console.log para ver qué mandó el back realmente
+        console.log("4. Error del backend:", data);
+        alert(data.msg || data.message || "Error al registrarse");
+      }
+    } catch (error) {
+      console.error("5. ERROR DE CONEXIÓN:", error);
+      alert("No se pudo conectar con el servidor. Revisa si el backend está corriendo.");
+    }
   };
 
   return (
@@ -40,7 +47,7 @@ const Signup = () => {
             aria-describedby="emailHelp"
             placeholder="Enter email"
             value={email}
-            onChange={(e)=>setemail(e.target.value)}
+            onChange={(e) => setemail(e.target.value)}
             required
           />
           <small id="emailHelp" className="form-text text-muted">
@@ -55,7 +62,7 @@ const Signup = () => {
             id="exampleInputPassword1"
             placeholder="Password"
             value={password}
-            onChange={(e)=>setpassword(e.target.value)}
+            onChange={(e) => setpassword(e.target.value)}
             required
           />
         </div>
@@ -65,6 +72,6 @@ const Signup = () => {
       </form>
     </div>
   );
-};history
+}; history
 
 export default Signup;

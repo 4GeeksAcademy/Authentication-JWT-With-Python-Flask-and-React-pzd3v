@@ -85,9 +85,10 @@ def get_users():
 
 
 @api.route('/users/favorites', methods=['GET'])
+@jwt_required()  # <--- Esto obliga a que el Front envíe el Token
 def get_user_favorites():
     # Simulamos que somos el usuario con ID 1 ya que aun no hay login
-    current_user_id = 1
+    current_user_id = get_jwt_identity()
     # Buscamos en la tabla Favorite todos los que tengan user_id == 1
     # Usamos .filter_by() para filtrar
     favorites_query = Favorite.query.filter_by(user_id=current_user_id).all()
@@ -100,9 +101,10 @@ def get_user_favorites():
 
 
 @api.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+@jwt_required()
 def add_favorite_planet(planet_id):
     # Simular usuario ID 1
-    user_id = 1
+    user_id = get_jwt_identity()
     # 1. VALIDACION si ya existe el favorito en la base de datos.
     # Se busca un registro que coincida con los dos IDs
     exist = Favorite.query.filter_by(user_id=1, planet_id=planet_id).first()
@@ -128,9 +130,10 @@ def add_favorite_planet(planet_id):
 # [POST] /favorite/people/<int:people_id> Añade un nuevo people favorito al usuario actual con el id = people_id.
 
 @api.route('/favorite/people/<int:people_id>', methods=['POST'])
+@jwt_required()
 def add_favorite_person(people_id):
     # Simular usuario ID 1
-    user_id = 1
+    user_id = get_jwt_identity()
     # 1. VALIDACION si ya existe el favorito en la base de datos.
     # Se busca un registro que coincida con los dos IDs
     exist = Favorite.query.filter_by(user_id=1, people_id=people_id).first()
@@ -156,9 +159,10 @@ def add_favorite_person(people_id):
 # [DELETE] /favorite/planet/<int:planet_id> Elimina un planet favorito con el id = planet_id.
 
 @api.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+@jwt_required()
 def delete_favorite_planet(planet_id):
     # Simular usuario ID 1
-    user_id = 1
+    user_id = get_jwt_identity()
     # 1 Buscamos el favorito en la DB
     favorite = Favorite.query.filter_by(
         user_id=user_id, planet_id=planet_id).first()
@@ -178,9 +182,10 @@ def delete_favorite_planet(planet_id):
 # [DELETE] /favorite/people/<int:people_id> Elimina un people favorito con el id = people_id.
 
 @api.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+@jwt_required()
 def delete_favorite_people(people_id):
     # Simular usuario ID 1
-    user_id = 1
+    user_id = get_jwt_identity()
     # 1 Buscamos el favorito en la DB
     favorite = Favorite.query.filter_by(
         user_id=user_id, people_id=people_id).first()
@@ -230,23 +235,25 @@ def signup():
 
 @api.route('/login', methods=['POST'])
 def login():
-    #Recibimos los datos del Front o Postman
     body = request.get_json()
     email = body.get("email")
     password = body.get("password")
-    #Verificamos si el usuario existe
+
     user = User.query.filter_by(email=email).first()
-    #Si no existe el usuario retorna el mensaje y se termina
+
+    # 1. ¿Existe el usuario?
     if user is None:
-        return jsonify({"msg": "El usuario no existe"}), 401
-    #Aqui se valida las credenciales con el hashed para verificar si son iguales
+        return jsonify({"msg": "Usuario no encontrado"}), 401
+
+    # 2. ¿Es válida la contraseña?
+    # bcrypt.check_password_hash devuelve un BOOLEANO (True o False)
     is_valid = bcrypt.check_password_hash(user.password, password)
-    #Si la contraseña no está bien pues retorna no autorizado
-    if is_valid is None:
-        return jsonify({"msg":"La contraseña es incorrecta"}), 401
-    #Si la contraseña es correcta, se otorga un token de acceso
-    access_token = create_access_token(identity=str(User.id))
+
+    print(f"¿Contraseña válida?: {is_valid}")  # Mira tu terminal
+
+    if not is_valid:  # Si es False...
+        return jsonify({"msg": "Contraseña incorrecta"}), 401
+
+    # 3. SOLO si pasó los dos filtros anteriores, creamos el token
+    access_token = create_access_token(identity=str(user.id))
     return jsonify({"token": access_token}), 200
-    
-    
-    
