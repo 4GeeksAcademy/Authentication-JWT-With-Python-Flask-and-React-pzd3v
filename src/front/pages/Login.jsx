@@ -24,7 +24,7 @@ const Login = () => {
             if (response.ok) {
                 dispatch({ type: "login", payload: data.token })
                 alert("Token almacenado con exito")
-                navigate("/profile") // Pa' profile 
+                navigate("/private") // Pa' private 
             } else {
                 alert(data.msg || "Credenciales incorrectas")
             }

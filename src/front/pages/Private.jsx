@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { useNavigate, Link} from "react-router-dom";
 
-const Profile = () => {
+const Private = () => {
     const { store, dispatch } = useGlobalReducer();
 
     // 1. Cargar favoritos del usuario desde el Backend
@@ -176,4 +176,4 @@ const Profile = () => {
 };
 
 
-export default Profile;
+export default Private;
